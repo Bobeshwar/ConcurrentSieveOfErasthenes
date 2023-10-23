@@ -5,6 +5,7 @@
 #include <chrono>
 #include <queue>
 #include <thread>
+#include <memory>
 
 using namespace std;
 
@@ -44,15 +45,18 @@ public:
 		closed = true;
 	}
 
+	~MessagingQueue() {
+	}
+
 };
 
-void filterProcess(MessagingQueue<int>*);
+void filterProcess(shared_ptr<MessagingQueue<int>>);
 
 int main() {
 
-	MessagingQueue<int> *output = new MessagingQueue<int>();
-	thread t1(filterProcess,output);
-	for (int i = 2; i < 100000; i++) {
+	shared_ptr<MessagingQueue<int>> output = make_shared<MessagingQueue<int>>();
+	thread t1(filterProcess, output);
+	for (int i = 2; i < 1000000; i++) {
 		output->sendMessage(i);
 	}
 	output->close();
@@ -60,14 +64,14 @@ int main() {
 	return 0;
 }
 
-void filterProcess(MessagingQueue<int> *input) {
+void filterProcess(shared_ptr<MessagingQueue<int>> input) {
 
 	int prime = input->getMessage();
 	if (!prime) {
 		return;
 	}
-	MessagingQueue<int> *output = new MessagingQueue<int>();
-	thread t1(filterProcess,output);
+	shared_ptr<MessagingQueue<int>> output = make_shared<MessagingQueue<int>>();
+	thread t1(filterProcess, output);
 	int nextNumber = input->getMessage();
 	while (nextNumber) {
 		if (nextNumber % prime) {
